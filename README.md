@@ -1,2 +1,2 @@
 # orthanc-worklists
-Orthanc plugin add DICOM worklist capabilities
+Orthanc plugin adding DICOM worklist capabilities
