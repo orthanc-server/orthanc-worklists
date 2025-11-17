@@ -83,6 +83,7 @@ else()
   set(ENABLE_MODULE_JOBS OFF CACHE INTERNAL "")
   set(ENABLE_MODULE_DICOM ON CACHE INTERNAL "")
   set(ENABLE_LOCALE ON)
+  set(ENABLE_ZLIB ON CACHE INTERNAL "")
   set(ENABLE_DCMTK ON CACHE INTERNAL "")
 
   include(${ORTHANC_FRAMEWORK_ROOT}/../Resources/CMake/OrthancFrameworkConfiguration.cmake)
