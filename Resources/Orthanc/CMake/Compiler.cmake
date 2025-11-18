@@ -249,7 +249,13 @@ elseif (${CMAKE_SYSTEM_NAME} STREQUAL "Darwin")
   add_definitions(
     -D_XOPEN_SOURCE=1
     )
-  
+
+  # it seems that some recent MacOS compilers don't set these flags correctly which prevents zlib from building correctly
+  add_definitions(
+    -D_LARGEFILE64_SOURCE=1 
+    -D_FILE_OFFSET_BITS=64
+    )
+    
   # Linking with iconv breaks the Universal builds on modern compilers
   # link_libraries(iconv)
 
