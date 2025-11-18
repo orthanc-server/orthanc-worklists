@@ -80,6 +80,18 @@ jobs:
       if: runner.os == 'Windows'
       run: choco install hg
 
+    - name: install Mercurial on Windows
+      if: runner.os == 'Windows'
+      run: |
+        Invoke-WebRequest -Uri "https://www.mercurial-scm.org/release/windows/mercurial-6.5.3-x64.msi" -OutFile "mercurial.msi"
+        msiexec /i mercurial.msi /qn /norestart
+      shell: powershell
+
+    - name: Verify Mercurial installation on Windows
+      if: runner.os == 'Windows'
+      run: hg --version
+      shell: cmd
+
     - name: Configure CMake
       run: cmake -B ${{github.workspace}}/build  ${{matrix.config.extraCMakeFlags}} -DORTHANC_PLUGIN_VERSION="${{needs.pre-build.outputs.current_branch_tag}}" -DSTATIC_BUILD=ON -DALLOW_DOWNLOADS=ON -DUSE_SYSTEM_ORTHANC_SDK=OFF -DCMAKE_BUILD_TYPE=${{env.BUILD_TYPE}}
       env: 
