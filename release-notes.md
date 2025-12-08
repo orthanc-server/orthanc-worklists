@@ -1,8 +1,8 @@
-0.9.1 (2025-12-08)
+0.9.2 (2025-12-08)
 ==================
 
 Fixes:
-- Fix version number on Windows builds
+- Fix version number
 
 
 0.9.0 (2025-11-18)

@@ -28,7 +28,7 @@ endif(APPLE)
 
 project(OrthancWorklists)
 
-set(ORTHANC_PLUGIN_VERSION "mainline")
+set(ORTHANC_PLUGIN_VERSION "mainline" CACHE STRING "plugin version 'mainline' or '1.2.3'")
 set(ORTHANC_PLUGIN_NAME "orthanc-worklists")
 
 if (ORTHANC_PLUGIN_VERSION STREQUAL "mainline")
