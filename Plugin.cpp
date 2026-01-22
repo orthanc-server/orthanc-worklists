@@ -293,7 +293,6 @@ OrthancPluginErrorCode WorklistCallback(OrthancPluginWorklistAnswers*     answer
 {
   try
   {
-    unsigned int parsedFilesCount = 0;
     unsigned int matchedWorklistCount = 0;
 
     // Construct an object to match the worklists in the database against the C-Find query
