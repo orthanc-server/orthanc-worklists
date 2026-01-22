@@ -68,6 +68,7 @@ static unsigned int hkIntervalInSeconds_ = 60;
 static unsigned int deleteDelayInHours_ = 24;
 static std::unique_ptr<OrthancPlugins::KeyValueStore> worklistsStore_;
 static bool setStudyInstanceUidIfMissing_ = true;
+static bool logMatchedWorklistIds_ = false;
 
 enum WorklistStorageType
 {
@@ -323,12 +324,16 @@ OrthancPluginErrorCode WorklistCallback(OrthancPluginWorklistAnswers*     answer
           return OrthancPluginErrorCode_Success;
         }
         
-        LOG(INFO) << "Worklist matched: " << it->id_;
+        if (logMatchedWorklistIds_)
+        {
+          LOG(INFO) << "Worklist matched: " << it->id_;
+        }
+
         matchedWorklistCount++;
       }
     }
 
-    LOG(INFO) << "Worklist C-Find: parsed " << boost::lexical_cast<std::string>(parsedFilesCount) <<
+    LOG(INFO) << "Worklist C-Find: parsed " << boost::lexical_cast<std::string>(worklists.size()) <<
                  " worklists, found " << boost::lexical_cast<std::string>(matchedWorklistCount) << " match(es)";
 
 
@@ -822,6 +827,7 @@ extern "C"
       hkIntervalInSeconds_ = worklists.GetUnsignedIntegerValue("HousekeepingInterval", 60);
       deleteDelayInHours_ = worklists.GetUnsignedIntegerValue("DeleteWorklistsDelay", 0);
       setStudyInstanceUidIfMissing_ = worklists.GetBooleanValue("SetStudyInstanceUidIfMissing", true);
+      logMatchedWorklistIds_ = worklists.GetBooleanValue("LogMatchedWorklistIds", false);
 
       if (deleteDelayInHours_ > 0 && worklistStorage_ == WorklistStorageType_Folder)
       {

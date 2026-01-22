@@ -1,3 +1,9 @@
+Changes:
+- Removed log entry for every matched worklist (unless the new configuration `LogMatchedWorklistIds` is set to true.
+
+Fixes:
+- Logs: fixed the number of analyzed worklists.
+
 0.9.2 (2025-12-08)
 ==================
 
