@@ -31,12 +31,12 @@ project(OrthancWorklists)
 set(ORTHANC_PLUGIN_VERSION "mainline" CACHE STRING "plugin version 'mainline' or '1.2.3'")
 set(ORTHANC_PLUGIN_NAME "orthanc-worklists")
 
-if (ORTHANC_PLUGIN_VERSION STREQUAL "mainline")
-  set(ORTHANC_FRAMEWORK_DEFAULT_VERSION "mainline")
-  set(ORTHANC_FRAMEWORK_DEFAULT_SOURCE "hg")
-else()
+if (ORTHANC_PLUGIN_VERSION MATCHES "^([0-9]+)\\.([0-9]+)\\.([0-9]+)$")
   set(ORTHANC_FRAMEWORK_DEFAULT_VERSION "0ebe8cfd9bf7")
   set(ORTHANC_FRAMEWORK_DEFAULT_SOURCE "web")
+else()
+  set(ORTHANC_FRAMEWORK_DEFAULT_VERSION "mainline")
+  set(ORTHANC_FRAMEWORK_DEFAULT_SOURCE "hg")
 endif()
 
 
