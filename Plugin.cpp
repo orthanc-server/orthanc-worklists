@@ -325,15 +325,15 @@ OrthancPluginErrorCode WorklistCallback(OrthancPluginWorklistAnswers*     answer
         
         if (logMatchedWorklistIds_)
         {
-          LOG(INFO) << "Worklist matched: " << it->id_;
+          CLOG(INFO, DICOM) << "Worklist matched: " << it->id_;
         }
 
         matchedWorklistCount++;
       }
     }
 
-    LOG(INFO) << "Worklist C-Find: parsed " << boost::lexical_cast<std::string>(worklists.size()) <<
-                 " worklists, found " << boost::lexical_cast<std::string>(matchedWorklistCount) << " match(es)";
+    CLOG(INFO, DICOM) << "Worklist C-Find: parsed " << boost::lexical_cast<std::string>(worklists.size()) <<
+                         " worklists, found " << boost::lexical_cast<std::string>(matchedWorklistCount) << " match(es)";
 
 
     return OrthancPluginErrorCode_Success;
