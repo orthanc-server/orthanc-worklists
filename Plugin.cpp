@@ -332,7 +332,7 @@ OrthancPluginErrorCode WorklistCallback(OrthancPluginWorklistAnswers*     answer
       }
     }
 
-    CLOG(INFO, DICOM) << "Worklist C-Find: parsed " << boost::lexical_cast<std::string>(worklists.size()) <<
+    CLOG(INFO, DICOM) << "Worklist C-Find (from '" << issuerAet << "'): parsed " << boost::lexical_cast<std::string>(worklists.size()) <<
                          " worklists, found " << boost::lexical_cast<std::string>(matchedWorklistCount) << " match(es)";
 
 
