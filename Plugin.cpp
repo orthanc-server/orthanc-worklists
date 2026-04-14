@@ -32,6 +32,11 @@
 #include "DicomFormat/DicomInstanceHasher.h"
 
 #include <OrthancPluginCppWrapper.h>
+
+#if ORTHANC_FRAMEWORK_VERSION_IS_ABOVE(1, 12, 11)
+#  include <ElapsedTimer.h>
+#endif
+
 #include <boost/thread.hpp>
 #include <boost/filesystem.hpp>
 #include <json/value.h>
@@ -382,7 +387,12 @@ static void WorklistHkWorkerThread()
   OrthancPluginSetCurrentThreadName(OrthancPlugins::GetGlobalContext(), "WL HOUSEKEEPER");
 
   OrthancPluginLogWarning(OrthancPlugins::GetGlobalContext(), "Starting Worklist Housekeeper worker thread");
+
+#if ORTHANC_FRAMEWORK_VERSION_IS_ABOVE(1, 12, 11)
+  Orthanc::ElapsedTimer timer;
+#else
   Orthanc::Toolbox::ElapsedTimer timer;
+#endif
 
   while (!worklistHousekeeperThreadShouldStop_)
   {
