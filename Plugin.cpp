@@ -276,7 +276,16 @@ static void ListWorklistsFromFolder(std::vector<Worklist>& target)
         {
           std::string worklistId = Orthanc::SystemToolbox::PathToUtf8(it->path().filename().replace_extension(""));
           std::string dicomContent;
-          Orthanc::SystemToolbox::ReadFile(dicomContent, it->path());
+
+          try
+          {
+            Orthanc::SystemToolbox::ReadFile(dicomContent, it->path());
+          }
+          catch (Orthanc::OrthancException&)
+          {
+            // The file has been removed while scanning (e.g. by the housekeeper)
+            continue;
+          }
 
           Worklist wl(worklistId, dicomContent);
           target.push_back(wl);
@@ -403,47 +412,72 @@ static void WorklistHkWorkerThread()
       timer.Restart();
       LOG(INFO) << "Performing Worklist Housekeeping";
 
+      // Any exception escaping this thread would terminate the whole Orthanc process
       std::vector<Worklist> worklists;
 
-      if (worklistStorage_ == WorklistStorageType_OrthancDb)
+      try
       {
-        ListWorklistsFromDb(worklists);
+        if (worklistStorage_ == WorklistStorageType_OrthancDb)
+        {
+          ListWorklistsFromDb(worklists);
+        }
+        else if (worklistStorage_ == WorklistStorageType_Folder)
+        {
+          ListWorklistsFromFolder(worklists);
+        }
       }
-      else if (worklistStorage_ == WorklistStorageType_Folder)
+      catch (Orthanc::OrthancException& e)
       {
-        ListWorklistsFromFolder(worklists);
+        LOG(ERROR) << "Worklist Housekeeping: unable to list the worklists: " << e.What();
+        continue;
+      }
+      catch (...)
+      {
+        LOG(ERROR) << "Worklist Housekeeping: unable to list the worklists: native exception";
+        continue;
       }
 
       for (std::vector<Worklist>::const_iterator it = worklists.begin(); it != worklists.end(); ++it)
       {
-        if (deleteDelayInHours_ > 0 && it->IsOlderThan(deleteDelayInHours_))
+        try
         {
-          LOG(INFO) << "Deleting worklist " << it->id_ << " " << deleteDelayInHours_ << " hours after its creation";
-          DeleteWorklist(it->id_);
-        }
-        else if (deleteWorklistsOnStableStudy_)
-        {
-          std::string studyInstanceUid;
-          std::string patientId;
-
-          Orthanc::ParsedDicomFile parsed(it->dicomContent_);
-          
-          if (parsed.GetTagValue(studyInstanceUid, Orthanc::DICOM_TAG_STUDY_INSTANCE_UID) &&
-              parsed.GetTagValue(patientId, Orthanc::DICOM_TAG_PATIENT_ID))
+          if (deleteDelayInHours_ > 0 && it->IsOlderThan(deleteDelayInHours_))
           {
-            Orthanc::DicomInstanceHasher hasher(patientId, studyInstanceUid, "fake-id", "fake-id");
-            const std::string& studyOrthancId = hasher.HashStudy();
+            LOG(INFO) << "Deleting worklist " << it->id_ << " " << deleteDelayInHours_ << " hours after its creation";
+            DeleteWorklist(it->id_);
+          }
+          else if (deleteWorklistsOnStableStudy_)
+          {
+            std::string studyInstanceUid;
+            std::string patientId;
 
-            Json::Value studyInfo;
-            if (OrthancPlugins::RestApiGet(studyInfo, "/studies/" + studyOrthancId, false))
+            Orthanc::ParsedDicomFile parsed(it->dicomContent_);
+
+            if (parsed.GetTagValue(studyInstanceUid, Orthanc::DICOM_TAG_STUDY_INSTANCE_UID) &&
+                parsed.GetTagValue(patientId, Orthanc::DICOM_TAG_PATIENT_ID))
             {
-              if (studyInfo["IsStable"].asBool())
+              Orthanc::DicomInstanceHasher hasher(patientId, studyInstanceUid, "fake-id", "fake-id");
+              const std::string& studyOrthancId = hasher.HashStudy();
+
+              Json::Value studyInfo;
+              if (OrthancPlugins::RestApiGet(studyInfo, "/studies/" + studyOrthancId, false))
               {
-                LOG(INFO) << "Deleting worklist " << it->id_ << " because its study is now stable";
-                DeleteWorklist(it->id_);
+                if (studyInfo["IsStable"].asBool())
+                {
+                  LOG(INFO) << "Deleting worklist " << it->id_ << " because its study is now stable";
+                  DeleteWorklist(it->id_);
+                }
               }
             }
           }
+        }
+        catch (Orthanc::OrthancException& e)
+        {
+          LOG(ERROR) << "Worklist Housekeeping: skipping worklist " << it->id_ << ": " << e.What();
+        }
+        catch (...)
+        {
+          LOG(ERROR) << "Worklist Housekeeping: skipping worklist " << it->id_ << ": native exception";
         }
       }
     }
@@ -544,9 +578,20 @@ extern "C"
 
       for (std::vector<Worklist>::const_iterator it = worklists.begin(); it != worklists.end(); ++it)
       {
-        Orthanc::ParsedDicomFile parsed(it->dicomContent_);
+        std::unique_ptr<Orthanc::ParsedDicomFile> parsed;
+
+        try
+        {
+          parsed.reset(new Orthanc::ParsedDicomFile(it->dicomContent_));
+        }
+        catch (Orthanc::OrthancException& e)
+        {
+          LOG(ERROR) << "Skipping malformed worklist " << it->id_ << ": " << e.What();
+          continue;
+        }
+
         Json::Value jsonWl;
-        SerializeWorklistForApi(jsonWl, it->id_, parsed, format);
+        SerializeWorklistForApi(jsonWl, it->id_, *parsed, format);
 
         if (worklistStorage_ == WorklistStorageType_OrthancDb)
         {
