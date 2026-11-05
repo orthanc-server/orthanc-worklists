@@ -1,9 +1,13 @@
+1.0.0 (2026-11-05)
+==================
+
 Changes:
 - Removed log entry for every matched worklist (unless the new configuration `LogMatchedWorklistIds` is set to true.
 
 Fixes:
 - Improved handling of invalid or deleted files.
 - Logs: fixed the number of analyzed worklists.
+
 
 0.9.2 (2025-12-08)
 ==================
